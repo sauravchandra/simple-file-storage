@@ -14,10 +14,21 @@ else
     kubectl apply -f deploy-template.yaml
 
     while [[ $(kubectl get pods -l app=simple-file-store -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do
-        echo "Waiting for the pod to be ready..."
+        echo "Waiting for the deployment to be ready..."
         sleep 5
     done
 
     kubectl port-forward service/simple-file-store-service 8080:8080 > /dev/null 2>&1 &
-    echo "File store server started using kubectl port-forward."
+
+    while true; do
+            if lsof -i :8080 > /dev/null 2>&1; then
+                if curl -s http://localhost:8080 >/dev/null; then
+                    echo "Waiting for the service to be ready..."
+                    break
+                fi
+            fi
+            sleep 5
+        done
+        
+    echo "File store server started."
 fi
