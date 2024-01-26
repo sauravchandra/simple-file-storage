@@ -1,0 +1,26 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Build the Docker image
+      run: |
+        docker build . -f Dockerfile -t simple_file_store:latest
+        docker tag simple_file_store:latest ${{ secrets.DOCKER_HUB_USERNAME }}/simple_file_store:latest
+
+    - name: Log in to Docker Hub
+      run: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+    - name: Push Docker image to Docker Hub
+      run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/simple_file_store:latest
